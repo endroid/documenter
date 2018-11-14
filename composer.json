@@ -1,0 +1,37 @@
+{
+    "name": "endroid/documenter",
+    "description": "Endroid Documenter",
+    "keywords": ["endroid", "documenter", "yuml"],
+    "homepage": "https://github.com/endroid/documenter",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeroen van den Enden",
+            "email": "info@endroid.nl"
+        }
+    ],
+    "require": {
+        "php": ">=7.1",
+        "endroid/installer": "^1.0.6"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.1",
+        "phpunit/phpunit": "^5.7|^6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Endroid\\Documenter\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Endroid\\Documenter\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
+        }
+    }
+}
