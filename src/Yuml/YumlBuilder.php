@@ -9,57 +9,39 @@
 
 namespace Endroid\Documenter\Yuml;
 
+use Endroid\Documenter\Whitelist;
+
 class YumlBuilder
 {
-    public const MODE_WHITELIST = 'whitelist';
-    public const MODE_BLACKLIST = 'blacklist';
+    public const MODE_IGNORE = 'ignore';
+    public const MODE_ANNOTATION = 'annotation';
 
-    private $paths = [];
-    private $mode = self::MODE_BLACKLIST; // show all when no mode is set
-    private $whitelist = [];
-    private $blacklist = [];
-    private $includeExternal = false;
+    private $loadPaths = [];
+    private $mode = self::MODE_IGNORE;
+    private $whitelist;
 
     public static function create(): self
     {
         return new self();
     }
 
-    public function setPath(string $path): self
+    public function setLoadPaths(iterable $loadPaths): self
     {
-        $this->paths = [$path];
+        $this->loadPaths = $loadPaths;
+
+        return $this;
     }
 
-    public function setPaths(iterable $paths): self
-    {
-        $this->paths = $paths;
-    }
-
-    public function setWhitelist(iterable $whitelist, bool $toggleMode = true): self
+    public function setWhitelist(Whitelist $whitelist): self
     {
         $this->whitelist = $whitelist;
 
-        if ($toggleMode) {
-            $this->mode = self::MODE_WHITELIST;
-        }
-
         return $this;
     }
 
-    public function setBlacklist(iterable $blacklist, bool $toggleMode = true): self
+    public function setMode(string $mode): self
     {
-        $this->blacklist = $blacklist;
-
-        if ($toggleMode) {
-            $this->mode = self::MODE_BLACKLIST;
-        }
-
-        return $this;
-    }
-
-    public function setIncludeExternal(bool $includeExternal): self
-    {
-        $this->includeExternal = $includeExternal;
+        $this->mode = $mode;
 
         return $this;
     }
@@ -68,22 +50,25 @@ class YumlBuilder
     {
         $yuml = new Yuml();
 
-        $classMap = $this->getClassMap($this->paths, $this->excludes);
-
-
+        $this->loadPaths();
+        $classes = get_declared_classes();
+        foreach ($classes as $class) {
+            if ($this->whitelist->isWhiteListed($class)) {
+                $this->analyzeClass($class);
+            }
+        }
 
         return $yuml;
     }
 
-    private function getClassMap(iterable $include, iterable $exclude)
+    private function loadPaths(): void
     {
-        /** @var \SplFileInfo[] $iterator */
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($sourcePath, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
-        foreach ($iterator as $item) {
-            if ($item->isFile() && $item->getExtension() === 'php') {
-                dump($item);
-                die;
-                require_once($item->getPathname());
+        foreach ($this->loadPaths as $path) {
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
+            foreach ($iterator as $item) {
+                if ($item->isFile() && $item->getExtension() === 'php') {
+                    include_once($item->getPathname());
+                }
             }
         }
     }
