@@ -11,23 +11,37 @@ namespace Endroid\Documenter;
 
 class Whitelist
 {
-    private $directives = [];
+    public const ANALIZE = 'analyze';
+    public const INCLUDE = 'include';
+    public const IGNORE = 'ignore';
 
-    public function __construct(iterable $directives)
+    private $rules = [];
+
+    public function __construct(iterable $rules)
     {
-        foreach ($directives as $directive) {
-            if (substr($directive, 0, 1) === '!') {
-                $this->directives[substr($directive, 1)] = false;
-            } else {
-                $this->directives[$directive] = true;
-            }
+        foreach ($rules as $class => $rule) {
+            $this->appendRule($class, $rule);
         }
+    }
+
+    public function appendRule(string $class, string $rule): self
+    {
+        $this->rules = $this->rules + [$class => $rule];
+
+        return $this;
+    }
+
+    public function prependRule(string $class, string $rule): self
+    {
+        $this->rules = [$class => $rule] + $this->rules;
+
+        return $this;
     }
 
     public function isWhiteListed(string $string): bool
     {
         $isWhitelisted = false;
-        foreach ($this->directives as $pattern => $whitelist) {
+        foreach ($this->rules as $pattern => $whitelist) {
             if (preg_match('#^'.preg_quote($pattern, '#').'#', $string)) {
                 $isWhitelisted = $whitelist;
             }

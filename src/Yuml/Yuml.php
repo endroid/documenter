@@ -30,12 +30,12 @@ class Yuml
         $this->definitions[$definition] = $definition;
     }
 
-    private function addObject(string $name): void
+    public function addObject(string $name): void
     {
         $this->addDefinition('['.$name.']');
     }
 
-    private function addObjects(iterable $names): void
+    public function addObjects(iterable $names): void
     {
         foreach ($names as $name) {
             $this->addObject($name);
@@ -60,11 +60,13 @@ class Yuml
         $this->addDefinition('['.$interface.']^-.-implements['.$object.']');
     }
 
-    public function createUrl()
+    public function getUrl()
     {
-        $url = str_replace('{style}', $this->style, $this->baseUrl);
-        $url = str_replace('{definitions}', implode(', ', $this->definitions), $url);
+        $replaces = [
+            '{style}' => $this->style,
+            '{definitions}' => implode(', ', $this->definitions),
+        ];
 
-        return $url;
+        return str_replace(array_keys($replaces), $replaces, $this->baseUrl);
     }
 }
