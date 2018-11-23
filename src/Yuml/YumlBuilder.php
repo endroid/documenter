@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * (c) Jeroen van den Enden <info@endroid.nl>
  *
@@ -70,8 +72,8 @@ class YumlBuilder
         foreach ($this->loadPaths as $path) {
             $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
             foreach ($iterator as $item) {
-                if ($item->isFile() && $item->getExtension() === 'php') {
-                    include_once($item->getPathname());
+                if ($item->isFile() && 'php' === $item->getExtension()) {
+                    include_once $item->getPathname();
                 }
             }
         }

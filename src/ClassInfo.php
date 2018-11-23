@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * (c) Jeroen van den Enden <info@endroid.nl>
  *
@@ -25,7 +27,7 @@ class ClassInfo extends \ReflectionClass
         $currentUse = '';
         foreach ($tokens as $token) {
             if ($record) {
-                if ($token === ';' || $token[0] === T_AS) {
+                if (';' === $token || T_AS === $token[0]) {
                     $uses[] = trim($currentUse);
                     $currentUse = '';
                     $record = false;
@@ -34,12 +36,12 @@ class ClassInfo extends \ReflectionClass
                 } else {
                     $currentUse .= $token[1];
                 }
-            } else if ($token[0] === T_USE) {
+            } elseif (T_USE === $token[0]) {
                 $record = true;
                 continue;
             }
         }
-        
+
         if ($filtered) {
             $uses = array_filter($uses, [$this, 'filter']);
         }
