@@ -20,7 +20,8 @@ composer require endroid/documenter
 ```
 
 When you use Symfony, the [installer](https://github.com/endroid/installer)
-makes sure that services are automatically wired.
+makes sure that services are automatically wired. If this is not the case you
+can find the configuration files in the `.install/symfony` folder.
 
 ## Usage
 
