@@ -13,6 +13,7 @@ namespace Endroid\Documenter\Yuml;
 
 use Endroid\Documenter\ClassInfo;
 use Endroid\Documenter\Whitelist;
+use ReflectionClass;
 
 class YumlBuilder
 {
@@ -102,9 +103,9 @@ class YumlBuilder
         $implements = $classInfo->getInterfaceNames();
 
         // Extends
-        if ($extends) {
-            $this->handleRelatedClass($parentClassName = $classInfo->getParentClass()->getName());
-            if ($this->whitelist->isWhitelisted($parentClassName = $classInfo->getParentClass()->getName())) {
+        if ($extends instanceof ReflectionClass) {
+            $this->handleRelatedClass($parentClassName = $extends->getName());
+            if ($this->whitelist->isWhitelisted($parentClassName = $extends->getName())) {
                 $yuml->addExtends($className, $parentClassName);
             }
         }

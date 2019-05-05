@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter;
 
-class ClassInfo extends \ReflectionClass
+use Endroid\Documenter\Exception\FileLoadException;
+use ReflectionClass;
+
+class ClassInfo extends ReflectionClass
 {
-    public function getUses(bool $filtered = true): iterable
+    public function getUses(bool $filtered = true): array
     {
         $uses = [];
 
@@ -21,7 +24,13 @@ class ClassInfo extends \ReflectionClass
             return [];
         }
 
-        $tokens = token_get_all(file_get_contents($this->getFileName()));
+        $contents = file_get_contents((string) $this->getFileName());
+
+        if (!is_string($contents)) {
+            throw new FileLoadException('Could not load file '.$this->getFileName());
+        }
+
+        $tokens = token_get_all($contents);
 
         $record = false;
         $currentUse = '';
@@ -51,7 +60,9 @@ class ClassInfo extends \ReflectionClass
 
     private function filter(string $class): bool
     {
-        if ($this->getParentClass() && $class === $this->getParentClass()->getName()) {
+        $parentClass = $this->getParentClass();
+
+        if ($parentClass instanceof ReflectionClass && $class === $parentClass->getName()) {
             return false;
         }
 
