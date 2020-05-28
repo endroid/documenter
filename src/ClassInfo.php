@@ -11,11 +11,21 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use Endroid\Documenter\Exception\FileLoadException;
 use ReflectionClass;
 
 class ClassInfo extends ReflectionClass
 {
+    private $annotationReader;
+
+    public function __construct(string $class, AnnotationReader $annotationReader)
+    {
+        parent::__construct($class);
+
+        $this->annotationReader = $annotationReader;
+    }
+
     public function getUses(bool $filtered = true): array
     {
         $uses = [];

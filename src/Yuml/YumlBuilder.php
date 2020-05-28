@@ -11,40 +11,38 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter\Yuml;
 
+use Doctrine\Common\Annotations\AnnotationReader;
+use Endroid\Documenter\Annotation\Documenter;
 use Endroid\Documenter\ClassInfo;
+use Endroid\Documenter\Factory\ClassInfoFactory;
 use Endroid\Documenter\Whitelist;
 use ReflectionClass;
 
 class YumlBuilder
 {
-    private $loadPaths = [];
-    private $whitelist;
-    private $addRelatedClasses = false;
+    private $classInfoFactory;
+    private $paths;
+    private $groups;
+    private $classInfo;
 
-    private $availableClasses;
-
-    public static function create(): self
+    public function __construct(ClassInfoFactory $classInfoFactory)
     {
-        return new self();
+        $this->classInfoFactory = $classInfoFactory;
+        $this->paths = [];
+        $this->groups = [];
+        $this->classInfo = [];
     }
 
-    public function setLoadPaths(iterable $loadPaths): self
+    public function addPath(string $path): self
     {
-        $this->loadPaths = $loadPaths;
+        $this->paths[] = $path;
 
         return $this;
     }
 
-    public function setWhitelist(Whitelist $whitelist): self
+    public function setGroups(array $groups): self
     {
-        $this->whitelist = $whitelist;
-
-        return $this;
-    }
-
-    public function setAddRelatedClasses(bool $addRelatedClasses): self
-    {
-        $this->addRelatedClasses = $addRelatedClasses;
+        $this->groups = $groups;
 
         return $this;
     }
@@ -53,24 +51,22 @@ class YumlBuilder
     {
         $yuml = new Yuml();
 
-        $this->loadPaths();
+        $this->loadClassInfo();
 
-        $yumlClasses = $this->getYumlClassIterator();
-        foreach ($yumlClasses as $yumlClass) {
-            try {
-                $classInfo = new ClassInfo($yumlClass);
-                $this->addToYuml($classInfo, $yuml);
-            } catch (\ReflectionException $exception) {
-                // do nothing
-            }
+        $filteredClassInfo = $this->filterClassInfo($this->groups);
+
+        foreach ($annotations as $class => $annotation) {
+            $reflectionClass = new ClassInfo($class);
+            $this->addToYuml($reflectionClass, $yuml);
         }
 
         return $yuml;
     }
 
-    private function loadPaths(): void
+    private function loadClassInfo(): void
     {
-        foreach ($this->loadPaths as $path) {
+        // First make sure all paths are loaded
+        foreach ($this->paths as $path) {
             $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
             foreach ($iterator as $item) {
                 if ($item->isFile() && 'php' === $item->getExtension()) {
@@ -78,18 +74,19 @@ class YumlBuilder
                 }
             }
         }
+
+        $availableClasses = get_declared_classes();
+        foreach ($availableClasses as $class) {
+            $this->classInfo[$class] = $this->classInfoFactory->createForClass($class);
+        }
+
+        dump($this->classInfo);
+        die;
     }
 
-    private function getYumlClassIterator(): iterable
+    private function filterClassInfo(array $groups): array
     {
-        $this->availableClasses = get_declared_classes();
-
-        while (count($this->availableClasses) > 0) {
-            $class = array_shift($this->availableClasses);
-            if ($this->whitelist->isWhitelisted($class)) {
-                yield $class;
-            }
-        }
+        return $this->classInfo;
     }
 
     private function addToYuml(ClassInfo $classInfo, Yuml $yuml): void
@@ -104,7 +101,6 @@ class YumlBuilder
 
         // Extends
         if ($extends instanceof ReflectionClass) {
-            $this->handleRelatedClass($parentClassName = $extends->getName());
             if ($this->whitelist->isWhitelisted($parentClassName = $extends->getName())) {
                 $yuml->addExtends($className, $parentClassName);
             }
@@ -112,28 +108,17 @@ class YumlBuilder
 
         // Implements
         foreach ($implements as $interfaceName) {
-            $this->handleRelatedClass($interfaceName);
             if ($this->whitelist->isWhitelisted($interfaceName) && in_array($interfaceName, $uses)) {
                 $yuml->addImplements($className, $interfaceName);
             }
         }
 
         // Uses
-//        foreach ($uses as $useClass) {
-//            $this->handleRelatedClass($useClass);
-//            if ($this->whitelist->isWhitelisted($useClass)) {
-//                $yuml->addUses($className, $useClass);
-//            }
-//        }
-    }
-
-    private function handleRelatedClass(string $class): void
-    {
-        if (!$this->addRelatedClasses) {
-            return;
+        foreach ($uses as $useClass) {
+            $this->handleRelatedClass($useClass);
+            if ($this->whitelist->isWhitelisted($useClass)) {
+                $yuml->addUses($className, $useClass);
+            }
         }
-
-        $this->availableClasses[] = $class;
-        $this->whitelist->prependRule($class, Whitelist::INCLUDE);
     }
 }
