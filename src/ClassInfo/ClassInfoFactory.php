@@ -22,8 +22,10 @@ class ClassInfoFactory implements ClassInfoFactoryInterface
         $this->annotationReader = new AnnotationReader();
     }
 
-    public function getIterator(array $paths, array $whitelist): \Generator
+    public function create(array $paths): array
     {
+        $classInfo = [];
+
         // First make sure all paths are loaded
         foreach ($paths as $path) {
             $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
@@ -36,12 +38,10 @@ class ClassInfoFactory implements ClassInfoFactoryInterface
 
         $availableClasses = get_declared_classes();
         foreach ($availableClasses as $class) {
-            foreach ($whitelist as $namespace) {
-                if (false !== strpos($class, $namespace)) {
-                    yield $this->createForClass($class);
-                }
-            }
+            $classInfo[$class] = $this->createForClass($class);
         }
+
+        return $classInfo;
     }
 
     public function createForClass(string $class): ClassInfoInterface

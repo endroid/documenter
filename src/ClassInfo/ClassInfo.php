@@ -33,8 +33,9 @@ class ClassInfo implements ClassInfoInterface
 
     public function getExtends(): ?string
     {
-        dump(get_class($this->reflectionClass->getParentClass()));
-        die;
+        if ($this->reflectionClass->getParentClass() === false) {
+            return null;
+        }
 
         return $this->reflectionClass->getParentClass()->getName();
     }

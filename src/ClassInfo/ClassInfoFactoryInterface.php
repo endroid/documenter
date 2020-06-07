@@ -13,7 +13,7 @@ namespace Endroid\Documenter\ClassInfo;
 
 interface ClassInfoFactoryInterface
 {
-    public function getIterator(array $paths, array $whitelist): \Generator;
+    public function create(array $paths): array;
 
     public function createForClass(string $class): ClassInfoInterface;
 }

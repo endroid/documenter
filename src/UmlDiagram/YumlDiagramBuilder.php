@@ -51,11 +51,26 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
     {
         $umlDiagram = new YumlDiagram();
 
-        foreach ($this->classInfoFactory->getIterator($this->paths, $this->whitelist) as $classInfo) {
-            $this->addClassToDiagram($classInfo, $umlDiagram);
+        $classInfos = $this->classInfoFactory->create($this->paths);
+
+        foreach ($classInfos as $classInfo) {
+            if ($this->isWhitelisted($classInfo->getName())) {
+                $this->addClassToDiagram($classInfo, $umlDiagram);
+            }
         }
 
         return $umlDiagram;
+    }
+
+    private function isWhitelisted(string $class): bool
+    {
+        foreach ($this->whitelist as $namespace) {
+            if (false !== strpos($class, $namespace)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function addClassToDiagram(ClassInfoInterface $classInfo, UmlDiagramInterface $umlDiagram): void
@@ -63,5 +78,17 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
         $className = $classInfo->getName();
 
         $umlDiagram->addObject($className);
+
+        $extends = $classInfo->getExtends();
+        if ($extends !== null && $this->isWhitelisted($extends)) {
+            $umlDiagram->addExtends($className, $extends);
+        }
+
+        $implements = $classInfo->getImplements();
+        foreach ($implements as $interface) {
+            if ($this->isWhitelisted($interface)) {
+                $umlDiagram->addImplements($className, $interface);
+            }
+        }
     }
 }
