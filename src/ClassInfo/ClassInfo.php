@@ -9,24 +9,47 @@ declare(strict_types=1);
  * with this source code in the file LICENSE.
  */
 
-namespace Endroid\Documenter;
+namespace Endroid\Documenter\ClassInfo;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Endroid\Documenter\Exception\FileLoadException;
 use ReflectionClass;
 
-class ClassInfo extends ReflectionClass
+class ClassInfo implements ClassInfoInterface
 {
+    private $reflectionClass;
     private $annotationReader;
 
     public function __construct(string $class, AnnotationReader $annotationReader)
     {
-        parent::__construct($class);
-
+        $this->reflectionClass = new ReflectionClass($class);
         $this->annotationReader = $annotationReader;
     }
 
-    public function getUses(bool $filtered = true): array
+    public function getName(): string
+    {
+        return $this->reflectionClass->getName();
+    }
+
+    public function getExtends(): ?string
+    {
+        dump(get_class($this->reflectionClass->getParentClass()));
+        die;
+
+        return $this->reflectionClass->getParentClass()->getName();
+    }
+
+    public function getImplements(): array
+    {
+        return $this->reflectionClass->getInterfaceNames();
+    }
+
+    public function getUses(): array
+    {
+        return [];
+    }
+
+    public function getUsssses(bool $filtered = true): array
     {
         $uses = [];
 
