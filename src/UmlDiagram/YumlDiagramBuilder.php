@@ -80,7 +80,7 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
         $umlDiagram->addObject($className);
 
         $extends = $classInfo->getExtends();
-        if ($extends !== null && $this->isWhitelisted($extends)) {
+        if (null !== $extends && $this->isWhitelisted($extends)) {
             $umlDiagram->addExtends($className, $extends);
         }
 

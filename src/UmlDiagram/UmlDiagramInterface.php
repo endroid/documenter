@@ -14,7 +14,10 @@ namespace Endroid\Documenter\UmlDiagram;
 interface UmlDiagramInterface
 {
     public function addObject(string $name): void;
+
     public function addExtends(string $object, string $parent): void;
+
     public function addImplements(string $object, string $interface): void;
+
     public function getUrl(): string;
 }

@@ -13,6 +13,8 @@ namespace Endroid\Documenter\ClassInfo;
 
 interface ClassInfoInterface
 {
+    public function getName(): string;
+
     public function getExtends(): ?string;
 
     public function getImplements(): array;
