@@ -11,28 +11,31 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter\ClassInfo;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-
 class ClassInfoFactory implements ClassInfoFactoryInterface
 {
-    private $annotationReader;
+    public function __construct() {}
 
-    public function __construct()
-    {
-        $this->annotationReader = new AnnotationReader();
-    }
-
+    /**
+     * @param array<string> $paths
+     * @return array<class-string, ClassInfoInterface>
+     */
+    #[\Override]
     public function create(array $paths): array
     {
         $classInfo = [];
 
         // First make sure all paths are loaded
         foreach ($paths as $path) {
-            $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST,
+            );
             foreach ($iterator as $item) {
-                if ($item->isFile() && 'php' === $item->getExtension()) {
-                    include_once $item->getPathname();
+                if (!($item instanceof \SplFileInfo && $item->isFile() && 'php' === $item->getExtension())) {
+                    continue;
                 }
+
+                include_once $item->getPathname();
             }
         }
 
@@ -44,8 +47,10 @@ class ClassInfoFactory implements ClassInfoFactoryInterface
         return $classInfo;
     }
 
+    /** @param class-string $class */
+    #[\Override]
     public function createForClass(string $class): ClassInfoInterface
     {
-        return new ClassInfo($class, $this->annotationReader);
+        return new ClassInfo($class);
     }
 }

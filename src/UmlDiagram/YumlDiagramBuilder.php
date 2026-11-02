@@ -16,10 +16,11 @@ use Endroid\Documenter\ClassInfo\ClassInfoInterface;
 
 class YumlDiagramBuilder implements UmlDiagramBuilderInterface
 {
-    private $classInfoFactory;
-    private $paths = [];
-    private $whitelist = [];
-    private $groups = ['default'];
+    private ClassInfoFactoryInterface $classInfoFactory;
+    /** @var list<string> */
+    private array $paths = [];
+    /** @var array<string, string> */
+    private array $whitelist = [];
 
     public function __construct(ClassInfoFactoryInterface $classInfoFactory)
     {
@@ -40,13 +41,15 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
         return $this;
     }
 
+    /** @param array<string> $groups Retained for compatibility; group filtering is not implemented. */
     public function setGroups(array $groups): self
     {
-        $this->groups = $groups;
-
+        // Preserve the public named argument, but do not retain unused group state.
+        unset($groups);
         return $this;
     }
 
+    #[\Override]
     public function build(): UmlDiagramInterface
     {
         $umlDiagram = new YumlDiagram();
@@ -54,9 +57,11 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
         $classInfos = $this->classInfoFactory->create($this->paths);
 
         foreach ($classInfos as $classInfo) {
-            if ($this->isWhitelisted($classInfo->getName())) {
-                $this->addClassToDiagram($classInfo, $umlDiagram);
+            if (!$this->isWhitelisted($classInfo->getName())) {
+                continue;
             }
+
+            $this->addClassToDiagram($classInfo, $umlDiagram);
         }
 
         return $umlDiagram;
@@ -65,7 +70,7 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
     private function isWhitelisted(string $class): bool
     {
         foreach ($this->whitelist as $namespace) {
-            if (false !== strpos($class, $namespace)) {
+            if (str_contains($class, $namespace)) {
                 return true;
             }
         }
@@ -86,9 +91,11 @@ class YumlDiagramBuilder implements UmlDiagramBuilderInterface
 
         $implements = $classInfo->getImplements();
         foreach ($implements as $interface) {
-            if ($this->isWhitelisted($interface)) {
-                $umlDiagram->addImplements($className, $interface);
+            if (!$this->isWhitelisted($interface)) {
+                continue;
             }
+
+            $umlDiagram->addImplements($className, $interface);
         }
     }
 }

@@ -9,6 +9,6 @@ namespace Endroid\Documenter\Annotation;
  */
 class Documenter
 {
-    public $description;
-    public $groups;
+    public mixed $description = null;
+    public mixed $groups = null;
 }

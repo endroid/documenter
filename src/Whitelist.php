@@ -13,12 +13,14 @@ namespace Endroid\Documenter;
 
 class Whitelist
 {
-    public const ANALIZE = 'analyze';
-    public const INCLUDE = 'include';
-    public const IGNORE = 'ignore';
+    public const string ANALIZE = 'analyze';
+    public const string INCLUDE = 'include';
+    public const string IGNORE = 'ignore';
 
-    private $rules = [];
+    /** @var array<string, string> */
+    private array $rules = [];
 
+    /** @param iterable<string, string> $rules */
     public function __construct(iterable $rules)
     {
         foreach ($rules as $class => $rule) {
@@ -28,7 +30,7 @@ class Whitelist
 
     public function appendRule(string $class, string $rule): self
     {
-        $this->rules = $this->rules + [$class => $rule];
+        $this->rules += [$class => $rule];
 
         return $this;
     }
@@ -44,9 +46,11 @@ class Whitelist
     {
         $isWhitelisted = false;
         foreach ($this->rules as $pattern => $whitelist) {
-            if (preg_match('#^'.preg_quote($pattern, '#').'#', $string)) {
-                $isWhitelisted = $whitelist;
+            if (!preg_match('#^' . preg_quote($pattern, delimiter: '#') . '#', $string)) {
+                continue;
             }
+
+            $isWhitelisted = self::IGNORE !== $whitelist;
         }
 
         return $isWhitelisted;

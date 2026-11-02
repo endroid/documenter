@@ -11,40 +11,50 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter\ClassInfo;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use ReflectionClass;
 
 class ClassInfo implements ClassInfoInterface
 {
-    private $reflectionClass;
-    private $annotationReader;
+    /** @var ReflectionClass<object> */
+    private ReflectionClass $reflectionClass;
 
-    /* @param class-string $class */
-    public function __construct(string $class, AnnotationReader $annotationReader)
+    /**
+     * @param class-string $class
+     * @param object|null $annotationReader Retained for compatibility; annotations are not used.
+     */
+    public function __construct(string $class, ?object $annotationReader = null)
     {
+        // Explicitly discard the legacy argument without retaining an unused reader.
+        unset($annotationReader);
         $this->reflectionClass = new ReflectionClass($class);
-        $this->annotationReader = $annotationReader;
     }
 
+    #[\Override]
     public function getName(): string
     {
         return $this->reflectionClass->getName();
     }
 
+    #[\Override]
     public function getExtends(): ?string
     {
-        if (false === $this->reflectionClass->getParentClass()) {
+        $parentClass = $this->reflectionClass->getParentClass();
+        if (false === $parentClass) {
             return null;
         }
 
-        return $this->reflectionClass->getParentClass()->getName();
+        return $parentClass->getName();
     }
 
+    /** @return list<class-string> */
+    #[\Override]
     public function getImplements(): array
     {
         return $this->reflectionClass->getInterfaceNames();
     }
 
+    /** @return list<class-string> */
+    #[\Override]
     public function getUses(): array
     {
         return [];

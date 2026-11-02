@@ -13,7 +13,12 @@ namespace Endroid\Documenter\ClassInfo;
 
 interface ClassInfoFactoryInterface
 {
+    /**
+     * @param array<string> $paths
+     * @return array<class-string, ClassInfoInterface>
+     */
     public function create(array $paths): array;
 
+    /** @param class-string $class */
     public function createForClass(string $class): ClassInfoInterface;
 }
