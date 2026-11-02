@@ -13,6 +13,4 @@ namespace Endroid\Documenter\Exception;
 
 use Exception;
 
-abstract class DocumenterException extends Exception
-{
-}
+abstract class DocumenterException extends Exception {}

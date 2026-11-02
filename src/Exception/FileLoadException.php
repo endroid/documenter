@@ -11,6 +11,4 @@ declare(strict_types=1);
 
 namespace Endroid\Documenter\Exception;
 
-class FileLoadException extends DocumenterException
-{
-}
+class FileLoadException extends DocumenterException {}

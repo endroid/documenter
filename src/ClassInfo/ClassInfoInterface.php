@@ -17,7 +17,9 @@ interface ClassInfoInterface
 
     public function getExtends(): ?string;
 
+    /** @return list<class-string> */
     public function getImplements(): array;
 
+    /** @return list<class-string> */
     public function getUses(): array;
 }
